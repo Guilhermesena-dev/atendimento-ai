@@ -1,0 +1,656 @@
+{
+ "gerado_em": "2026-11-22T20:21:49",
+ "kpis": {
+  "conversas_amostra": 4000,
+  "conversas_periodo": 12000,
+  "conversas_ano": 48000,
+  "custo_periodo": 108298.8,
+  "custo_ano": 433195.2,
+  "pct_evitavel": 53.3,
+  "conversas_evitaveis_ano": 6569,
+  "economia_potencial_ano": 84871.44,
+  "reacao_adversa_amostra": 40,
+  "reacao_adversa_sem_tag_correta": 40,
+  "pct_tag_divergente": 24.5,
+  "contatos_por_pedido": 0.072,
+  "pct_recontato": 50.9,
+  "pct_sla_estourado": 15.2
+ },
+ "perguntas": [
+  {
+   "id": "por_que",
+   "titulo": "Por que os clientes entram em contato?",
+   "resposta_curta": "Principalmente para saber do pedido: 'onde está meu pedido' e atraso somam 1373 de 4000 conversas (34,3%) e R$ 163.210/ano, e o 3º motivo é o abandono do bot (459).",
+   "bullets": [
+    "872 'onde está meu pedido' (21,8%): 871 em trânsito e 1 já entregue(s); o status já estava disponível em todos.",
+    "501 atrasos (12,5%), dos quais 94 já no Reclame Aqui.",
+    "459 abandonos no bot (11,5%): 308 sem tag nenhuma e 151 como 'Outros'.",
+    "Pós-entrega (avaria, item faltante, troca, erro de personalização): 961 conversas.",
+    "24,5% das tags manuais divergem do motivo real; a tag atual não serve para gestão.",
+    "0,072 conversas por pedido no período (~72 a cada 1.000 pedidos)."
+   ],
+   "numeros": [
+    {
+     "rotulo": "Conversas no período",
+     "valor": "12.000",
+     "formula": "4000 da amostra x 3"
+    },
+    {
+     "rotulo": "Custo anual do atendimento",
+     "valor": "R$ 433.195",
+     "formula": "R$ 36.099,60 da amostra x 12 (WhatsApp R$ 4,80, e-mail R$ 7,20, RA R$ 42,00)"
+    },
+    {
+     "rotulo": "Onde está meu pedido + atraso (ano)",
+     "valor": "16.476 conversas / R$ 163.210",
+     "formula": "(872 + 501) x 12; custo por canal x 12"
+    },
+    {
+     "rotulo": "Reclame Aqui",
+     "valor": "407 (10,2% das conversas, 47,4% do custo)",
+     "formula": "407 x R$ 42,00 = R$ 17.094,00 na amostra"
+    },
+    {
+     "rotulo": "Tags divergentes",
+     "valor": "24,5%",
+     "formula": "tag do agente incompatível com o motivo por regras (ver mapa em scripts/insights.py)"
+    }
+   ],
+   "confianca": "alta",
+   "premissas": [
+    "Motivo vem da classificação determinística por regras/palavras-chave sobre o texto do cliente + status do pedido (data/conversas.json).",
+    "Amostra aleatória de 1/3 dos clientes: x3 = período de 90 dias, x12 = ano.",
+    "Custo por conversa = custo médio do canal informado nos parâmetros."
+   ]
+  },
+  {
+   "id": "atacar_primeiro",
+   "titulo": "O que atacar primeiro?",
+   "resposta_curta": "Cosmetovigilância primeiro (gate regulatório: 40 reações adversas sem registro); depois 'Rastreio proativo (push no WhatsApp)' e 'Escalonamento no 3º contato (prevenção de Reclame Aqui)', ambos de esforço baixo e que juntos economizam ~R$ 78.344/ano.",
+   "bullets": [
+    "1. Tag e protocolo de cosmetovigilância (score gate, esforço baixo)",
+    "2. Rastreio proativo (push no WhatsApp) (score 195.852, esforço baixo)",
+    "3. Escalonamento no 3º contato (prevenção de Reclame Aqui) (score 188.244, esforço baixo)",
+    "4. Reenvio, estorno e nova produção automáticos via agente (score 59.011, esforço médio)",
+    "5. Higiene de PII e defesa contra prompt injection (score 48.751, esforço baixo)",
+    "6. Recuperação do abandono no bot (score 14.018, esforço médio)",
+    "Critério: custo anual dos contatos-alvo x fator de risco / esforço; obrigação legal entra antes."
+   ],
+   "numeros": [
+    {
+     "rotulo": "Reações adversas",
+     "valor": "40 na amostra / ~480 por ano",
+     "formula": "40 x 12; 0 com tag própria"
+    },
+    {
+     "rotulo": "Custo-alvo do rastreio proativo",
+     "valor": "R$ 163.210",
+     "formula": "custo das conversas 'onde está' + atraso x 12"
+    },
+    {
+     "rotulo": "Economia do rastreio proativo",
+     "valor": "R$ 50.556",
+     "formula": "(40% x R$ 7.464,00 + 20% x R$ 6.136,80) x 12"
+    },
+    {
+     "rotulo": "Reclame Aqui com contato prévio",
+     "valor": "249 de 407 (61,2%)",
+     "formula": "RA com ordem_contato >= 2"
+    }
+   ],
+   "confianca": "média",
+   "premissas": [
+    "score = custo_ano dos contatos-alvo (R$, amostra x 12) x fator_risco / peso do esforço (baixo = 1, médio = 2, alto = 3). fator_risco: 1,0 só custo; 1,2 gera Reclame Aqui; 1,5 reputacional/LGPD. Obrigações regulatórias com prazo legal (cosmetovigilância, 24h) são um gate: entram em 1º lugar independentemente do score, porque o custo de não cumprir não é medido em R$ por conversa.",
+    "Fatores de risco e pesos de esforço são julgamento do analista, declarados para serem contestados."
+   ]
+  },
+  {
+   "id": "evitaveis",
+   "titulo": "Quais contatos poderiam ter sido evitados?",
+   "resposta_curta": "53,3% das conversas seriam evitáveis em tese; sendo conservador, as iniciativas evitam ~6.569 conversas/ano, convertem outros ~747 Reclame Aqui em atendimento prioritário e economizam ~R$ 84.871/ano no total.",
+   "bullets": [
+    "'Onde está meu pedido': 872 conversas, 871 em trânsito e 1 já entregue(s) (status disponível).",
+    "Atraso: 501, o atraso é conhecido antes do cliente reclamar.",
+    "Abandono no bot: 459, e 18 novas conversas do mesmo cliente em até 7 dias.",
+    "Recontato sobre o mesmo pedido nos demais motivos: 300 conversas.",
+    "50,9% das conversas são recontato e 61,2% dos Reclame Aqui vieram depois de outro contato.",
+    "Rastreio proativo (push no WhatsApp): 5.388 contatos/ano, R$ 50.556/ano",
+    "Recuperação do abandono no bot: 65 contatos/ano, R$ 480/ano",
+    "Escalonamento no 3º contato (prevenção de Reclame Aqui): 747 contatos/ano, R$ 27.788/ano",
+    "Reenvio, estorno e nova produção automáticos via agente: 1.116 contatos/ano, R$ 6.048/ano"
+   ],
+   "numeros": [
+    {
+     "rotulo": "Evitáveis em tese (amostra)",
+     "valor": "2132 (53,3%)",
+     "formula": "onde está + atraso + abandono + recontatos do mesmo pedido (sem dupla contagem)"
+    },
+    {
+     "rotulo": "Evitáveis em tese (ano)",
+     "valor": "25.584",
+     "formula": "2132 x 12"
+    },
+    {
+     "rotulo": "Evitados de forma conservadora (ano)",
+     "valor": "6.569",
+     "formula": "soma das iniciativas evitar/automatizar com taxas de captura de 20% a 50%; o escalonamento (RA convertido em WhatsApp) entra só na economia, não aqui"
+    },
+    {
+     "rotulo": "Economia conservadora (ano)",
+     "valor": "R$ 84.871",
+     "formula": "soma das iniciativas; RA convertido em WhatsApp a R$ 37,20 de diferença"
+    },
+    {
+     "rotulo": "Custo anual total",
+     "valor": "R$ 433.195",
+     "formula": "para comparação: economia = 19,6% do custo"
+    }
+   ],
+   "confianca": "média",
+   "premissas": [
+    "Taxas de captura: rastreio 40% / atraso 20% / abandono 30% / RA 25% / recontato automatizado 50%. Escolhidas abaixo do teórico de propósito.",
+    "Não há dupla contagem: o abandono exclui conversas seguintes de rastreio/atraso; o recontato automatizado exclui Reclame Aqui.",
+    "A economia não inclui custo de implantação nem o ganho reputacional/regulatório."
+   ]
+  },
+  {
+   "id": "automatizar",
+   "titulo": "O que pode ser automatizado e o que precisa de humano?",
+   "resposta_curta": "42,6% das conversas cabem em fluxo automático pela política vigente; 57,4% precisam de humano (Reclame Aqui, 3+ contatos, reação adversa, valor alto, endereço após separação, injeção).",
+   "bullets": [
+    "Automático: rastreio, reenvio por avaria/faltante (foto, 7 dias), nova produção por erro de personalização, reembolso por arrependimento (7 dias), troca de fragrância dentro da regra, dúvidas de produto.",
+    "Humano: reação adversa (40), Reclame Aqui (407), clientes com 3+ contatos (2016 conversas), pedido >= R$ 300 com impacto financeiro, endereço após separação, injeção de prompt (4).",
+    "Dos 1044 contatos de reenvio/estorno/nova produção, 432 (41,4%) caem em fluxo automático.",
+    "O agente executa a ação (consultar pedido, aprovar reenvio/estorno, abrir protocolo, escalar) e registra tudo; o humano fica com exceções."
+   ],
+   "numeros": [
+    {
+     "rotulo": "Conversas automatizáveis",
+     "valor": "1705 (42,6%)",
+     "formula": "regra de lib/triagem.ts replicada em Python"
+    },
+    {
+     "rotulo": "Conversas para humano",
+     "valor": "2295 (57,4%)",
+     "formula": "qualquer gatilho humano"
+    },
+    {
+     "rotulo": "Automatizáveis por ano",
+     "valor": "20.460",
+     "formula": "1705 x 12"
+    },
+    {
+     "rotulo": "Economia do autoatendimento",
+     "valor": "R$ 6.048",
+     "formula": "50% x custo de 186 recontatos do mesmo pedido x 12"
+    }
+   ],
+   "confianca": "média",
+   "premissas": [
+    "A regra auto x humano é a da fila (lib/triagem.ts): um único gatilho humano basta para enviar a conversa ao humano.",
+    "Fotos e prazos são conferidos pelo agente; a regra não verifica se a foto foi enviada.",
+    "Automatizar não zera o custo do 1º contato; a economia contada vem só dos recontatos evitados."
+   ]
+  }
+ ],
+ "motivos": [
+  {
+   "motivo": "Onde está meu pedido",
+   "conversas": 872,
+   "pct": 21.8,
+   "custo_amostra": 7464.0,
+   "custo_ano": 89568.0,
+   "reclame_aqui": 76,
+   "pct_recontato": 59.5,
+   "pct_evitavel": 100.0,
+   "evitavel_porque": "100% dos pedidos estavam em trânsito; o status já existia. Push proativo.",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Atraso na entrega",
+   "conversas": 501,
+   "pct": 12.5,
+   "custo_amostra": 6136.8,
+   "custo_ano": 73641.6,
+   "reclame_aqui": 94,
+   "pct_recontato": 53.1,
+   "pct_evitavel": 100.0,
+   "evitavel_porque": "O atraso é conhecido pela transportadora antes do cliente. Aviso proativo com nova data.",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Abandono no bot",
+   "conversas": 459,
+   "pct": 11.5,
+   "custo_amostra": 2203.2,
+   "custo_ano": 26438.4,
+   "reclame_aqui": 0,
+   "pct_recontato": 51.2,
+   "pct_evitavel": 100.0,
+   "evitavel_porque": "O cliente desistiu do bot e voltou depois. Melhorar fluxo + follow-up.",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Promoção/cupom/brinde",
+   "conversas": 301,
+   "pct": 7.5,
+   "custo_amostra": 2944.8,
+   "custo_ano": 35337.6,
+   "reclame_aqui": 36,
+   "pct_recontato": 50.2,
+   "pct_evitavel": 15.6,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Avaria/vazamento",
+   "conversas": 297,
+   "pct": 7.4,
+   "custo_amostra": 2607.6,
+   "custo_ano": 31291.2,
+   "reclame_aqui": 27,
+   "pct_recontato": 53.5,
+   "pct_evitavel": 30.6,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Item faltante",
+   "conversas": 274,
+   "pct": 6.8,
+   "custo_amostra": 2049.6,
+   "custo_ano": 24595.2,
+   "reclame_aqui": 16,
+   "pct_recontato": 65.3,
+   "pct_evitavel": 28.1,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Troca",
+   "conversas": 265,
+   "pct": 6.6,
+   "custo_amostra": 2401.2,
+   "custo_ano": 28814.4,
+   "reclame_aqui": 27,
+   "pct_recontato": 34.7,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Dúvida de produto",
+   "conversas": 218,
+   "pct": 5.5,
+   "custo_amostra": 1868.4,
+   "custo_ano": 22420.8,
+   "reclame_aqui": 19,
+   "pct_recontato": 33.5,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Cobrança duplicada",
+   "conversas": 189,
+   "pct": 4.7,
+   "custo_amostra": 2532.0,
+   "custo_ano": 30384.0,
+   "reclame_aqui": 42,
+   "pct_recontato": 59.8,
+   "pct_evitavel": 27.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Arrependimento/cancelamento",
+   "conversas": 159,
+   "pct": 4.0,
+   "custo_amostra": 1537.2,
+   "custo_ano": 18446.4,
+   "reclame_aqui": 19,
+   "pct_recontato": 32.7,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Pagamento/financeiro",
+   "conversas": 146,
+   "pct": 3.6,
+   "custo_amostra": 1512.0,
+   "custo_ano": 18144.0,
+   "reclame_aqui": 20,
+   "pct_recontato": 49.3,
+   "pct_evitavel": 17.8,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Erro de personalização",
+   "conversas": 125,
+   "pct": 3.1,
+   "custo_amostra": 1108.8,
+   "custo_ano": 13305.6,
+   "reclame_aqui": 12,
+   "pct_recontato": 49.6,
+   "pct_evitavel": 6.4,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  },
+  {
+   "motivo": "Endereço",
+   "conversas": 116,
+   "pct": 2.9,
+   "custo_amostra": 951.6,
+   "custo_ano": 11419.2,
+   "reclame_aqui": 9,
+   "pct_recontato": 35.3,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "humano"
+  },
+  {
+   "motivo": "Reação adversa",
+   "conversas": 40,
+   "pct": 1.0,
+   "custo_amostra": 434.4,
+   "custo_ano": 5212.8,
+   "reclame_aqui": 6,
+   "pct_recontato": 27.5,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "humano"
+  },
+  {
+   "motivo": "Elogio",
+   "conversas": 38,
+   "pct": 0.9,
+   "custo_amostra": 348.0,
+   "custo_ano": 4176.0,
+   "reclame_aqui": 4,
+   "pct_recontato": 23.7,
+   "pct_evitavel": 0.0,
+   "evitavel_porque": "Só os recontatos sobre o mesmo pedido (falha de resolução no 1º contato).",
+   "rota": "híbrido"
+  }
+ ],
+ "ranking_atacar": [
+  {
+   "posicao": 1,
+   "motivo_ou_iniciativa": "Tag e protocolo de cosmetovigilância",
+   "score": null,
+   "custo_ano": 5212.8,
+   "fator_risco": "regulatório (gate)",
+   "esforco": "baixo",
+   "justificativa": "40 reações adversas na amostra (~480/ano) sem registro de cosmetovigilância e sem tag própria. Obrigação com prazo de 24h; esforço baixo (tag + regex + protocolo já existem no agente)."
+  },
+  {
+   "posicao": 2,
+   "motivo_ou_iniciativa": "Rastreio proativo (push no WhatsApp)",
+   "score": 195852,
+   "custo_ano": 163209.6,
+   "fator_risco": "1,2",
+   "esforco": "baixo",
+   "justificativa": "Contatos-alvo custam R$ 163.210/ano; economia conservadora R$ 50.556/ano. Risco 1,2: 159 Reclame Aqui vêm desses dois motivos."
+  },
+  {
+   "posicao": 3,
+   "motivo_ou_iniciativa": "Escalonamento no 3º contato (prevenção de Reclame Aqui)",
+   "score": 188244,
+   "custo_ano": 125496.0,
+   "fator_risco": "1,5",
+   "esforco": "baixo",
+   "justificativa": "Contatos-alvo custam R$ 125.496/ano; economia conservadora R$ 27.788/ano. Risco 1,5: resposta pública, dano reputacional."
+  },
+  {
+   "posicao": 4,
+   "motivo_ou_iniciativa": "Reenvio, estorno e nova produção automáticos via agente",
+   "score": 59011,
+   "custo_ano": 118022.4,
+   "fator_risco": "1,0",
+   "esforco": "médio",
+   "justificativa": "Contatos-alvo custam R$ 118.022/ano; economia conservadora R$ 6.048/ano. Risco 1,0: risco financeiro coberto pelo teto de R$ 300 para humano."
+  },
+  {
+   "posicao": 5,
+   "motivo_ou_iniciativa": "Higiene de PII e defesa contra prompt injection",
+   "score": 48751,
+   "custo_ano": 32500.8,
+   "fator_risco": "1,5",
+   "esforco": "baixo",
+   "justificativa": "Contatos-alvo custam R$ 32.501/ano; economia conservadora R$ 0/ano. Risco 1,5: LGPD (dado de cartão em texto) e fraude via injeção."
+  },
+  {
+   "posicao": 6,
+   "motivo_ou_iniciativa": "Recuperação do abandono no bot",
+   "score": 14018,
+   "custo_ano": 28036.8,
+   "fator_risco": "1,0",
+   "esforco": "médio",
+   "justificativa": "Contatos-alvo custam R$ 28.037/ano; economia conservadora R$ 480/ano. Risco 1,0: sem risco além do custo."
+  }
+ ],
+ "criterio_ranking": "score = custo_ano dos contatos-alvo (R$, amostra x 12) x fator_risco / peso do esforço (baixo = 1, médio = 2, alto = 3). fator_risco: 1,0 só custo; 1,2 gera Reclame Aqui; 1,5 reputacional/LGPD. Obrigações regulatórias com prazo legal (cosmetovigilância, 24h) são um gate: entram em 1º lugar independentemente do score, porque o custo de não cumprir não é medido em R$ por conversa.",
+ "iniciativas": [
+  {
+   "id": "rastreio_proativo",
+   "nome": "Rastreio proativo (push no WhatsApp)",
+   "descricao": "Mensagem automática a cada mudança de status e, principalmente, quando a transportadora sinaliza atraso, com link de rastreio e nova data prevista.",
+   "motivos": [
+    "Onde está meu pedido",
+    "Atraso na entrega"
+   ],
+   "contatos_evitados_ano": 5388,
+   "economia_ano": 50555.52,
+   "esforco": "baixo",
+   "tipo": "evitar",
+   "premissa": "Evita 40% dos 872 'onde está meu pedido' (871 em trânsito e 1 já entregue(s)) e 20% dos 501 contatos de atraso da amostra. Não 100%: parte do público contata mesmo informado."
+  },
+  {
+   "id": "abandono_bot",
+   "nome": "Recuperação do abandono no bot",
+   "descricao": "Quando o cliente sai do bot sem resolução, enviar follow-up com o status do pedido e um atalho para humano; revisar os nós do bot onde ocorre a desistência.",
+   "motivos": [
+    "Abandono no bot"
+   ],
+   "contatos_evitados_ano": 65,
+   "economia_ano": 479.52,
+   "esforco": "médio",
+   "tipo": "evitar",
+   "premissa": "459 abandonos geraram 18 novas conversas do mesmo cliente em até 7 dias (excluindo rastreio/atraso, já contados). Evita 30% delas. O custo do abandono em si não é contado como economia."
+  },
+  {
+   "id": "escalonamento_recontato",
+   "nome": "Escalonamento no 3º contato (prevenção de Reclame Aqui)",
+   "descricao": "Cliente com 3+ contatos no período ou reaberto vai para fila humana prioritária com histórico completo, antes de migrar para o Reclame Aqui.",
+   "motivos": [
+    "Todos (recontato)"
+   ],
+   "contatos_evitados_ano": 747,
+   "economia_ano": 27788.4,
+   "esforco": "baixo",
+   "tipo": "humano",
+   "premissa": "249 dos 407 Reclame Aqui (61,2%) vieram de clientes que já tinham contatado antes. Evita 25% deles; cada um vira um atendimento prioritário no WhatsApp (economia de R$ 42,00 - R$ 4,80 = R$ 37,20). Não conta o ganho reputacional."
+  },
+  {
+   "id": "autoatendimento_agente",
+   "nome": "Reenvio, estorno e nova produção automáticos via agente",
+   "descricao": "O agente confere a política (foto, prazo de 7 dias, valor) e já aprova reenvio, estorno ou nova produção no 1º contato, sem fila.",
+   "motivos": [
+    "Avaria/vazamento",
+    "Item faltante",
+    "Erro de personalização",
+    "Arrependimento/cancelamento",
+    "Cobrança duplicada"
+   ],
+   "contatos_evitados_ano": 1116,
+   "economia_ano": 6048.0,
+   "esforco": "médio",
+   "tipo": "automatizar",
+   "premissa": "Dos 1044 contatos desses motivos, 186 são recontatos sobre o mesmo pedido (fora RA). Resolver no 1º contato evita 50% deles. O custo do 1º contato é mantido (não assumimos que a automação o torna gratuito)."
+  },
+  {
+   "id": "cosmetovigilancia",
+   "nome": "Tag e protocolo de cosmetovigilância",
+   "descricao": "Criar a tag 'Reação adversa', detectar por palavras-chave/IA, orientar a suspensão do uso, abrir o protocolo (produto, lote, descrição, fotos) em até 24h e acionar a responsável técnica.",
+   "motivos": [
+    "Reação adversa"
+   ],
+   "contatos_evitados_ano": 0,
+   "economia_ano": 0.0,
+   "esforco": "baixo",
+   "tipo": "risco",
+   "premissa": "40 casos na amostra (~480/ano), 0 com tag própria; foram marcados como Outros (11), Troca (10), Reclamação produto (7), Dúvida (7), Avaria (5). O valor é conformidade sanitária e segurança do consumidor, não economia: não contamos R$."
+  },
+  {
+   "id": "higiene_pii_injecao",
+   "nome": "Higiene de PII e defesa contra prompt injection",
+   "descricao": "Mascarar CPF, cartão e telefone antes de qualquer LLM ou log; orientar o cliente a não enviar dados de cartão; mensagens que tentam instruir a IA vão para humano.",
+   "motivos": [
+    "Todos"
+   ],
+   "contatos_evitados_ano": 0,
+   "economia_ano": 0.0,
+   "esforco": "baixo",
+   "tipo": "risco",
+   "premissa": "310 conversas (7,8%) com PII em texto aberto e 4 tentativas de instruir a IA na amostra. Valor é LGPD/fraude; não contamos R$."
+  }
+ ],
+ "automacao": {
+  "auto_pct": 42.6,
+  "humano_pct": 57.4,
+  "por_motivo": [
+   {
+    "motivo": "Onde está meu pedido",
+    "rota": "híbrido",
+    "justificativa": "Consulta de status: resposta automática com link de rastreio. (39,4% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Atraso na entrega",
+    "rota": "híbrido",
+    "justificativa": "Aviso com nova data é automático; humano se já houver 3+ contatos ou RA. (42,3% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Abandono no bot",
+    "rota": "híbrido",
+    "justificativa": "Follow-up automático; humano só se o cliente pedir. (45,1% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Promoção/cupom/brinde",
+    "rota": "híbrido",
+    "justificativa": "Regras do cupom/brinde; brinde faltante segue reenvio. (46,8% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Avaria/vazamento",
+    "rota": "híbrido",
+    "justificativa": "Reenvio automático mediante foto em até 7 dias. (36,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Item faltante",
+    "rota": "híbrido",
+    "justificativa": "Reenvio automático mediante foto em até 7 dias. (38,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Troca",
+    "rota": "híbrido",
+    "justificativa": "Regra objetiva (1 troca, 30 dias, até 20% usado): automática com foto. (58,5% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Dúvida de produto",
+    "rota": "híbrido",
+    "justificativa": "Base de conhecimento do produto. (60,1% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Cobrança duplicada",
+    "rota": "híbrido",
+    "justificativa": "Estorno automático após conferência; humano acima de R$ 300. (38,1% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Arrependimento/cancelamento",
+    "rota": "híbrido",
+    "justificativa": "Reembolso automático em até 7 dias; humano acima de R$ 300. (56,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Pagamento/financeiro",
+    "rota": "híbrido",
+    "justificativa": "Dúvidas de pagamento automáticas; humano acima de R$ 300. (39,7% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Erro de personalização",
+    "rota": "híbrido",
+    "justificativa": "Nova produção automática mediante foto em até 7 dias. (48,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Endereço",
+    "rota": "humano",
+    "justificativa": "Automático antes da separação; após a separação, humano negocia com a transportadora. (0,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Reação adversa",
+    "rota": "humano",
+    "justificativa": "Sempre humano: cosmetovigilância em 24h e responsável técnica. (0,0% das conversas caem em fluxo automático pela regra da fila.)"
+   },
+   {
+    "motivo": "Elogio",
+    "rota": "híbrido",
+    "justificativa": "Agradecimento automático. (65,8% das conversas caem em fluxo automático pela regra da fila.)"
+   }
+  ]
+ },
+ "tag_vs_motivo": {
+  "pct_divergente": 24.5,
+  "exemplos": [
+   {
+    "tag_agente": "Cancelamento",
+    "motivo": "Cobrança duplicada",
+    "conversas": 37
+   },
+   {
+    "tag_agente": "Cancelamento",
+    "motivo": "Promoção/cupom/brinde",
+    "conversas": 34
+   },
+   {
+    "tag_agente": "Cancelamento",
+    "motivo": "Onde está meu pedido",
+    "conversas": 30
+   },
+   {
+    "tag_agente": "Avaria",
+    "motivo": "Onde está meu pedido",
+    "conversas": 27
+   },
+   {
+    "tag_agente": "Promoção",
+    "motivo": "Pagamento/financeiro",
+    "conversas": 25
+   },
+   {
+    "tag_agente": "Produto faltando",
+    "motivo": "Onde está meu pedido",
+    "conversas": 22
+   },
+   {
+    "tag_agente": "Financeiro",
+    "motivo": "Onde está meu pedido",
+    "conversas": 21
+   },
+   {
+    "tag_agente": "Elogio",
+    "motivo": "Onde está meu pedido",
+    "conversas": 21
+   },
+   {
+    "tag_agente": "Reclamação produto",
+    "motivo": "Onde está meu pedido",
+    "conversas": 20
+   },
+   {
+    "tag_agente": "Endereço",
+    "motivo": "Onde está meu pedido",
+    "conversas": 20
+   }
+  ]
+ }
+}

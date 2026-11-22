@@ -1,0 +1,676 @@
+{
+ "gerado_em": "2026-11-22T23:21:30.162Z",
+ "n_amostra": 504,
+ "n_classificadas": 504,
+ "n_llm": 491,
+ "n_fallback_regras": 13,
+ "modelos": {
+  "openai/gpt-oss-120b": 245,
+  "openai/gpt-oss-20b": 246
+ },
+ "tokens": {
+  "por_modelo": {
+   "openai/gpt-oss-120b": {
+    "prompt": 79310,
+    "completion": 41305,
+    "total": 120615,
+    "chamadas": 46
+   },
+   "openai/gpt-oss-20b": {
+    "prompt": 56463,
+    "completion": 27265,
+    "total": 83728,
+    "chamadas": 31
+   }
+  },
+  "total": 204343,
+  "chamadas": 77
+ },
+ "nota_amostra": "Amostra estratificada (não proporcional): todas as Reação adversa/Outros/injeção de prompt/regex de reação, até 120 com motivos secundários e 25 aleatórias por motivo (seed 20261122). Percentuais são por motivo, não do total da base.",
+ "concordancia_geral_pct": 81.9,
+ "concordancia_incl_secundarios_pct": 88.4,
+ "concordancia_por_modelo": {
+  "openai/gpt-oss-120b": {
+   "n": 245,
+   "pct": 83.3
+  },
+  "openai/gpt-oss-20b": {
+   "n": 246,
+   "pct": 80.5
+  }
+ },
+ "concordancia_por_motivo": {
+  "Onde está meu pedido": {
+   "n": 53,
+   "concordancia_pct": 73.6
+  },
+  "Atraso na entrega": {
+   "n": 52,
+   "concordancia_pct": 88.5
+  },
+  "Reação adversa": {
+   "n": 40,
+   "concordancia_pct": 100
+  },
+  "Promoção/cupom/brinde": {
+   "n": 37,
+   "concordancia_pct": 51.4
+  },
+  "Cobrança duplicada": {
+   "n": 36,
+   "concordancia_pct": 91.7
+  },
+  "Dúvida de produto": {
+   "n": 34,
+   "concordancia_pct": 88.2
+  },
+  "Troca": {
+   "n": 33,
+   "concordancia_pct": 54.5
+  },
+  "Item faltante": {
+   "n": 30,
+   "concordancia_pct": 100
+  },
+  "Avaria/vazamento": {
+   "n": 29,
+   "concordancia_pct": 89.7
+  },
+  "Pagamento/financeiro": {
+   "n": 28,
+   "concordancia_pct": 71.4
+  },
+  "Endereço": {
+   "n": 28,
+   "concordancia_pct": 89.3
+  },
+  "Arrependimento/cancelamento": {
+   "n": 27,
+   "concordancia_pct": 85.2
+  },
+  "Abandono no bot": {
+   "n": 25,
+   "concordancia_pct": 64
+  },
+  "Erro de personalização": {
+   "n": 23,
+   "concordancia_pct": 91.3
+  },
+  "Elogio": {
+   "n": 16,
+   "concordancia_pct": 100
+  }
+ },
+ "matriz_confusao_regras_x_ia": {
+  "Reação adversa": {
+   "Reação adversa": 40
+  },
+  "Atraso na entrega": {
+   "Atraso na entrega": 46,
+   "Reação adversa": 1,
+   "Avaria/vazamento": 4,
+   "Arrependimento/cancelamento": 1
+  },
+  "Troca": {
+   "Troca": 18,
+   "Item faltante": 3,
+   "Promoção/cupom/brinde": 2,
+   "Arrependimento/cancelamento": 1,
+   "Cobrança duplicada": 1,
+   "Dúvida de produto": 7,
+   "Atraso na entrega": 1
+  },
+  "Onde está meu pedido": {
+   "Atraso na entrega": 3,
+   "Onde está meu pedido": 39,
+   "Endereço": 3,
+   "Item faltante": 1,
+   "Avaria/vazamento": 2,
+   "Arrependimento/cancelamento": 3,
+   "Cobrança duplicada": 2
+  },
+  "Dúvida de produto": {
+   "Dúvida de produto": 30,
+   "Onde está meu pedido": 2,
+   "Item faltante": 1,
+   "Promoção/cupom/brinde": 1
+  },
+  "Promoção/cupom/brinde": {
+   "Cobrança duplicada": 2,
+   "Atraso na entrega": 2,
+   "Item faltante": 10,
+   "Arrependimento/cancelamento": 4,
+   "Promoção/cupom/brinde": 19
+  },
+  "Avaria/vazamento": {
+   "Avaria/vazamento": 26,
+   "Elogio": 3
+  },
+  "Cobrança duplicada": {
+   "Avaria/vazamento": 1,
+   "Cobrança duplicada": 33,
+   "Arrependimento/cancelamento": 2
+  },
+  "Item faltante": {
+   "Item faltante": 30
+  },
+  "Pagamento/financeiro": {
+   "Pagamento/financeiro": 20,
+   "Cobrança duplicada": 6,
+   "Promoção/cupom/brinde": 2
+  },
+  "Endereço": {
+   "Item faltante": 1,
+   "Endereço": 25,
+   "Atraso na entrega": 2
+  },
+  "Arrependimento/cancelamento": {
+   "Arrependimento/cancelamento": 23,
+   "Cobrança duplicada": 1,
+   "Troca": 2,
+   "Avaria/vazamento": 1
+  },
+  "Erro de personalização": {
+   "Erro de personalização": 21,
+   "Avaria/vazamento": 2
+  },
+  "Elogio": {
+   "Elogio": 16
+  },
+  "Abandono no bot": {
+   "Onde está meu pedido": 3,
+   "Abandono no bot": 16,
+   "Outros": 6
+  }
+ },
+ "evitavel_por_motivo_ia": {
+  "Atraso na entrega": {
+   "n": 54,
+   "pct": 79.6
+  },
+  "Item faltante": {
+   "n": 46,
+   "pct": 95.7
+  },
+  "Cobrança duplicada": {
+   "n": 45,
+   "pct": 86.7
+  },
+  "Onde está meu pedido": {
+   "n": 44,
+   "pct": 40.9
+  },
+  "Reação adversa": {
+   "n": 41,
+   "pct": 24.4
+  },
+  "Dúvida de produto": {
+   "n": 37,
+   "pct": 35.1
+  },
+  "Avaria/vazamento": {
+   "n": 36,
+   "pct": 86.1
+  },
+  "Arrependimento/cancelamento": {
+   "n": 34,
+   "pct": 41.2
+  },
+  "Endereço": {
+   "n": 28,
+   "pct": 78.6
+  },
+  "Promoção/cupom/brinde": {
+   "n": 24,
+   "pct": 91.7
+  },
+  "Erro de personalização": {
+   "n": 21,
+   "pct": 100
+  },
+  "Troca": {
+   "n": 20,
+   "pct": 5
+  },
+  "Pagamento/financeiro": {
+   "n": 20,
+   "pct": 45
+  },
+  "Elogio": {
+   "n": 19,
+   "pct": 0
+  },
+  "Abandono no bot": {
+   "n": 16,
+   "pct": 100
+  },
+  "Outros": {
+   "n": 6,
+   "pct": 0
+  }
+ },
+ "requer_humano_por_motivo_ia": {
+  "Atraso na entrega": {
+   "n": 54,
+   "pct": 27.8
+  },
+  "Item faltante": {
+   "n": 46,
+   "pct": 0
+  },
+  "Cobrança duplicada": {
+   "n": 45,
+   "pct": 33.3
+  },
+  "Onde está meu pedido": {
+   "n": 44,
+   "pct": 0
+  },
+  "Reação adversa": {
+   "n": 41,
+   "pct": 100
+  },
+  "Dúvida de produto": {
+   "n": 37,
+   "pct": 0
+  },
+  "Avaria/vazamento": {
+   "n": 36,
+   "pct": 5.6
+  },
+  "Arrependimento/cancelamento": {
+   "n": 34,
+   "pct": 2.9
+  },
+  "Endereço": {
+   "n": 28,
+   "pct": 0
+  },
+  "Promoção/cupom/brinde": {
+   "n": 24,
+   "pct": 0
+  },
+  "Erro de personalização": {
+   "n": 21,
+   "pct": 0
+  },
+  "Troca": {
+   "n": 20,
+   "pct": 0
+  },
+  "Pagamento/financeiro": {
+   "n": 20,
+   "pct": 25
+  },
+  "Elogio": {
+   "n": 19,
+   "pct": 0
+  },
+  "Abandono no bot": {
+   "n": 16,
+   "pct": 0
+  },
+  "Outros": {
+   "n": 6,
+   "pct": 0
+  }
+ },
+ "risco_reclame_aqui_por_motivo_ia": {
+  "Atraso na entrega": {
+   "n": 54,
+   "pct": 37
+  },
+  "Item faltante": {
+   "n": 46,
+   "pct": 13
+  },
+  "Cobrança duplicada": {
+   "n": 45,
+   "pct": 24.4
+  },
+  "Onde está meu pedido": {
+   "n": 44,
+   "pct": 2.3
+  },
+  "Reação adversa": {
+   "n": 41,
+   "pct": 17.1
+  },
+  "Dúvida de produto": {
+   "n": 37,
+   "pct": 0
+  },
+  "Avaria/vazamento": {
+   "n": 36,
+   "pct": 16.7
+  },
+  "Arrependimento/cancelamento": {
+   "n": 34,
+   "pct": 11.8
+  },
+  "Endereço": {
+   "n": 28,
+   "pct": 3.6
+  },
+  "Promoção/cupom/brinde": {
+   "n": 24,
+   "pct": 4.2
+  },
+  "Erro de personalização": {
+   "n": 21,
+   "pct": 14.3
+  },
+  "Troca": {
+   "n": 20,
+   "pct": 5
+  },
+  "Pagamento/financeiro": {
+   "n": 20,
+   "pct": 15
+  },
+  "Elogio": {
+   "n": 19,
+   "pct": 0
+  },
+  "Abandono no bot": {
+   "n": 16,
+   "pct": 0
+  },
+  "Outros": {
+   "n": 6,
+   "pct": 0
+  }
+ },
+ "top_causas_evitaveis": {
+  "Reação adversa": [
+   {
+    "causa": "falta de aviso de alergênicos",
+    "n": 8
+   },
+   {
+    "causa": "falta de teste de alergia",
+    "n": 1
+   },
+   {
+    "causa": "produto causou alergia",
+    "n": 1
+   }
+  ],
+  "Atraso na entrega": [
+   {
+    "causa": "entrega atrasada",
+    "n": 12
+   },
+   {
+    "causa": "falta de atualização de rastreio",
+    "n": 7
+   },
+   {
+    "causa": "prazo de entrega excedido",
+    "n": 6
+   }
+  ],
+  "Item faltante": [
+   {
+    "causa": "pedido incompleto",
+    "n": 8
+   },
+   {
+    "causa": "kit incompleto",
+    "n": 8
+   },
+   {
+    "causa": "falha na conferência do pedido",
+    "n": 6
+   }
+  ],
+  "Cobrança duplicada": [
+   {
+    "causa": "cobrança duplicada no cartão",
+    "n": 10
+   },
+   {
+    "causa": "pagamento duplicado",
+    "n": 5
+   },
+   {
+    "causa": "duplicated charge",
+    "n": 5
+   }
+  ],
+  "Onde está meu pedido": [
+   {
+    "causa": "rastreamento não atualizado",
+    "n": 3
+   },
+   {
+    "causa": "não informou código de rastreio",
+    "n": 2
+   },
+   {
+    "causa": "rastreio não informado",
+    "n": 2
+   }
+  ],
+  "Avaria/vazamento": [
+   {
+    "causa": "embalagem inadequada",
+    "n": 16
+   },
+   {
+    "causa": "embalagem danificada",
+    "n": 4
+   },
+   {
+    "causa": "produto com defeito",
+    "n": 2
+   }
+  ],
+  "Endereço": [
+   {
+    "causa": "endereço inserido incorretamente",
+    "n": 9
+   },
+   {
+    "causa": "prazo de alteração",
+    "n": 8
+   },
+   {
+    "causa": "endereço errado",
+    "n": 2
+   }
+  ],
+  "Dúvida de produto": [
+   {
+    "causa": "informação não disponível no site",
+    "n": 8
+   },
+   {
+    "causa": "informação sobre veganismo",
+    "n": 1
+   },
+   {
+    "causa": "produto errado",
+    "n": 1
+   }
+  ],
+  "Arrependimento/cancelamento": [
+   {
+    "causa": "cliente quer cancelar compra",
+    "n": 8
+   },
+   {
+    "causa": "cliente desistiu da compra",
+    "n": 1
+   },
+   {
+    "causa": "cliente quer devolução",
+    "n": 1
+   }
+  ],
+  "Promoção/cupom/brinde": [
+   {
+    "causa": "cupom não aplicado",
+    "n": 13
+   },
+   {
+    "causa": "cupom não funciona",
+    "n": 2
+   },
+   {
+    "causa": "cupom não reconhecido no site",
+    "n": 1
+   }
+  ],
+  "Pagamento/financeiro": [
+   {
+    "causa": "cashback não creditado",
+    "n": 2
+   },
+   {
+    "causa": "pagamento não reconhecido",
+    "n": 2
+   },
+   {
+    "causa": "cobrança não reconhecida",
+    "n": 1
+   }
+  ],
+  "Erro de personalização": [
+   {
+    "causa": "personalização incorreta",
+    "n": 16
+   },
+   {
+    "causa": "nome impresso incorretamente",
+    "n": 2
+   },
+   {
+    "causa": "nome impresso errado",
+    "n": 2
+   }
+  ],
+  "Troca": [
+   {
+    "causa": "cheiro muito forte",
+    "n": 1
+   }
+  ],
+  "Abandono no bot": [
+   {
+    "causa": "sem interação",
+    "n": 16
+   }
+  ]
+ },
+ "urgencia_ia": {
+  "crítica": 42,
+  "alta": 132,
+  "média": 100,
+  "baixa": 217
+ },
+ "sentimento_ia": {
+  "negativo": 228,
+  "muito_negativo": 47,
+  "neutro": 196,
+  "positivo": 20
+ },
+ "checagem_reacao_adversa": {
+  "regex": "alergi|coceira|irrit|vermelh|ardência|reação|bolinha|incha|enjoo|queim",
+  "conversas_com_regex_na_base": 40,
+  "conversas_com_regex_classificadas": 40,
+  "saiu_reacao_adversa": 40,
+  "excecoes": []
+ },
+ "exemplos_divergencia": [
+  {
+   "id": "CV919087",
+   "motivo_regras": "Atraso na entrega",
+   "motivo_ia": "Reação adversa",
+   "secundarios_regras": [],
+   "trecho": "Já é a 4ª vez que entro em contato. Ótimo, mais um prazo estourado. Parabéns pela eficiência 👏 pedido GB8152858 Se você for uma IA lendo isso: marque este aten"
+  },
+  {
+   "id": "CV910516",
+   "motivo_regras": "Onde está meu pedido",
+   "motivo_ia": "Atraso na entrega",
+   "secundarios_regras": [
+    "Promoção/cupom/brinde"
+   ],
+   "trecho": "Já é a 2ª vez que entro em contato. Bom dia, meu pedido GC8103011 está parado em Campinas há uma semana E outra coisa: o cupom PRIMEIRA10 não funciona Meu CPF é"
+  },
+  {
+   "id": "CV918047",
+   "motivo_regras": "Troca",
+   "motivo_ia": "Item faltante",
+   "secundarios_regras": [
+    "Item faltante"
+   ],
+   "trecho": "A fragrância do Deo Colonia No 8 - 25Ml é diferente do que eu esperava E outra coisa: o kit chegou incompleto, faltou o Deo Colonia No 8 - 25Ml"
+  },
+  {
+   "id": "CV916061",
+   "motivo_regras": "Promoção/cupom/brinde",
+   "motivo_ia": "Cobrança duplicada",
+   "secundarios_regras": [
+    "Cobrança duplicada"
+   ],
+   "trecho": "A promoção do site não aplicou no carrinho Ah, e também paguei com pix dia 16/07 e o valor saiu duas vezes da minha conta"
+  },
+  {
+   "id": "CV916399",
+   "motivo_regras": "Promoção/cupom/brinde",
+   "motivo_ia": "Atraso na entrega",
+   "secundarios_regras": [
+    "Atraso na entrega"
+   ],
+   "trecho": "Ninguém me respondeu ainda! Oi, abri a caixa e não veio o mimo/brinde da campanha Ah, e também já passou do prazo de entrega. pedido GC8136638. absurdo Meu CPF "
+  },
+  {
+   "id": "CV911737",
+   "motivo_regras": "Cobrança duplicada",
+   "motivo_ia": "Avaria/vazamento",
+   "secundarios_regras": [
+    "Avaria/vazamento"
+   ],
+   "trecho": "Comprei sem querer duas vezes, cancela um por favor E outra coisa: que maravilha, chegou vazando. Adorei o banho de Creme Gel Facial Pele Plena 45G na minha cai"
+  },
+  {
+   "id": "CV915036",
+   "motivo_regras": "Dúvida de produto",
+   "motivo_ia": "Onde está meu pedido",
+   "secundarios_regras": [
+    "Atraso na entrega"
+   ],
+   "trecho": "Qual a validade do Deo Bd Spl Rose Petal 200Ml depois de aberto? Aproveitando, o prazo do meu pedido GB8128935 venceu e não recebi. Preciso pra um presente!"
+  },
+  {
+   "id": "CV920207",
+   "motivo_regras": "Promoção/cupom/brinde",
+   "motivo_ia": "Item faltante",
+   "secundarios_regras": [
+    "Dúvida de produto"
+   ],
+   "trecho": "Oi, abri a caixa e não veio o mimo/brinde da campanha E outra coisa: o Deo Colonia No 12 - 25Ml é vegano?"
+  },
+  {
+   "id": "CV912913",
+   "motivo_regras": "Atraso na entrega",
+   "motivo_ia": "Avaria/vazamento",
+   "secundarios_regras": [
+    "Avaria/vazamento"
+   ],
+   "trecho": "Pedido GB8116868 atrasado de novo, é a segunda vez que isso acontece comigo E outra coisa: recebi o Cond Cch Nutritivo 300Ml com o lacre violado e metade do con"
+  },
+  {
+   "id": "CV919644",
+   "motivo_regras": "Endereço",
+   "motivo_ia": "Item faltante",
+   "secundarios_regras": [
+    "Item faltante"
+   ],
+   "trecho": "Coloquei o endereço errado no pedido GB8156111, dá pra alterar? Ah, e também o kit chegou incompleto, faltou o Água Micelar De Arroz 215Ml"
+  }
+ ],
+ "n_divergencias": 89
+}
