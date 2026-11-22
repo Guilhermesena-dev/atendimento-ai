@@ -10,22 +10,39 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Rate limit simples em memória (por instância): 8 execuções por minuto por IP.
+// Rate limit simples em memória (por instância): 8 execuções por minuto por IP
+// e um teto global de 40/min por instância (protege a cota da Groq mesmo com IPs forjados).
 const JANELA_MS = 60_000;
 const LIMITE = 8;
+const LIMITE_GLOBAL = 40;
 const hits = new Map<string, number[]>();
+let globais: number[] = [];
 
 function limitado(ip: string): boolean {
   const agora = Date.now();
+  globais = globais.filter((t) => agora - t < JANELA_MS);
+  if (globais.length >= LIMITE_GLOBAL) return true;
   const lista = (hits.get(ip) ?? []).filter((t) => agora - t < JANELA_MS);
   if (lista.length >= LIMITE) {
     hits.set(ip, lista);
     return true;
   }
   lista.push(agora);
+  globais.push(agora);
   hits.set(ip, lista);
-  if (hits.size > 5000) hits.clear();
+  if (hits.size > 5000) {
+    // remove só as entradas expiradas (não zera o mapa)
+    for (const [k, v] of hits) if (!v.some((t) => agora - t < JANELA_MS)) hits.delete(k);
+  }
   return false;
+}
+
+// Na Vercel, x-real-ip é definido pela plataforma; no x-forwarded-for, o último salto é o anexado pelo proxy confiável.
+function ipCliente(req: Request): string {
+  const real = req.headers.get("x-real-ip")?.trim();
+  if (real) return real;
+  const xff = (req.headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return xff[xff.length - 1] || "local";
 }
 
 const MAX_MSG = 2000;
@@ -91,7 +108,7 @@ function conversaLivre(texto: string, orderId?: string): Conversa {
 }
 
 export async function POST(req: Request) {
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
+  const ip = ipCliente(req);
   if (limitado(ip))
     return NextResponse.json({ erro: "Muitas execuções seguidas. Aguarde 1 minuto e tente de novo." }, { status: 429 });
 
