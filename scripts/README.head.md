@@ -2,9 +2,9 @@
 
 **▶ App no ar: https://atendimento-ai-nine.vercel.app** (sem login)
 
-**Comece por aqui:** na home, a faixa "Veja o agente agindo" abre 6 casos reais da base. O agente roda sozinho e mostra cada tool chamada. Exemplo: [reação adversa](https://atendimento-ai-nine.vercel.app/conversa/CV920357?autorun=1#agente).
+**Comece por aqui:** a página inicial é a fila de atendimento. O bloco "Casos para ver o agente agindo" abre 6 casos reais da base. O agente roda sozinho e mostra cada tool chamada. Exemplo: [reação adversa](https://atendimento-ai-nine.vercel.app/conversa/CV920357?autorun=1#agente).
 
-Solução do Desafio AI-First (Problema 1, Atendimento). O app mostra **por que os clientes nos procuram** e **quanto isso custa**, prioriza a fila e traz um **agente de IA que executa ações**. Entre elas: consultar o pedido, aprovar reenvio ou estorno, abrir protocolo de cosmetovigilância e escalar para um humano com rascunho pronto. Toda ação passa por um motor de políticas determinístico antes de ser executada.
+Solução do Desafio AI-First (Problema 1, Atendimento). O app mostra **por que os clientes nos procuram** e **quanto isso custa**, prioriza a fila e traz um **agente de IA que executa ações**. Entre elas: consultar o pedido, aprovar reenvio ou estorno, abrir protocolo de cosmetovigilância e escalar para um humano com rascunho pronto. Quando escala, o cliente recebe na hora uma confirmação de recebimento com o prazo do canal, para não ficar sem resposta. Toda ação passa por um motor de políticas determinístico antes de ser executada.
 
 > Os dados do case são sintéticos e **não estão neste repositório**: os CSVs brutos, o enunciado e o zip ficam fora dele. Só entram os JSONs processados, com CPF, cartão e telefone mascarados.
 
@@ -12,8 +12,9 @@ Solução do Desafio AI-First (Problema 1, Atendimento). O app mostra **por que 
 
 | Rota | Para quê |
 | --- | --- |
-| `/` | Visão executiva: KPIs, as 4 perguntas respondidas com números, custo por motivo, ranking "atacar primeiro", iniciativas com economia anual e matriz tag do agente × motivo real |
-| `/fila` | Pendentes e reabertos ordenados por urgência, risco e custo, com rota automática ou humana e SLA |
+| `/` | Fila de atendimento (ponto de partida): pendentes e reabertos ordenados por urgência, risco e custo, com o motivo da prioridade, rota automática ou humana, SLA e filtros que ficam na URL |
+| `/resumo` | Resumo executivo: KPIs, as 4 perguntas respondidas com números, custo por motivo, ranking "atacar primeiro", iniciativas com economia anual e matriz tag do agente × motivo real |
+| `/fila` | Redireciona para `/` (link antigo) |
 | `/conversa/[id]` | Thread completa, pedido, triagem e **painel do agente**: o botão "Rodar agente" mostra cada tool chamada, as ações executadas ou bloqueadas e a resposta ao cliente. Também dá para colar uma nova mensagem e testar ao vivo |
 | `/metodologia` | Premissas, fórmulas, classificação e limitações |
 

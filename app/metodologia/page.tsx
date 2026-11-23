@@ -38,7 +38,7 @@ export default function Metodologia() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">Metodologia</p>
+        <p className="text-xs font-semibold text-muted">Metodologia</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">Como os números foram calculados</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
           Todos os números do painel vêm de arquivos gerados a partir dos dados da operação (data/base_metrics.json, data/insights.json e

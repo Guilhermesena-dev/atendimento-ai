@@ -145,6 +145,12 @@ export function executarTool(
   estado: EstadoExecucao,
   origem: "agente" | "guard-rail" = "agente",
 ): ResultadoTool {
+  // Tipos especiais de mensagem (aviso de segurança, confirmação de recebimento) são exclusivos dos guard-rails:
+  // o modelo não pode usá-los para contornar o rascunho obrigatório.
+  if (origem === "agente" && "tipo" in args) {
+    const { tipo: _ignorado, ...resto } = args; // eslint-disable-line @typescript-eslint/no-unused-vars
+    args = resto;
+  }
   // Reação adversa: todo texto ao cliente precisa conter a orientação de suspender o uso.
   if (temReacaoAdversa(c)) {
     const campo = tool === "enviar_resposta" ? "texto" : tool === "escalar_humano" ? "rascunho_resposta" : null;

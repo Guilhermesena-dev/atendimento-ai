@@ -2,18 +2,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getConversa, getConversas } from "@/lib/data";
 import { triar } from "@/lib/triagem";
+import { CONTATOS_ESCALONAMENTO, temInjecao, temReacaoAdversa } from "@/lib/policies";
 import { CANAL_LABEL, ENTREGA_LABEL, STATUS_LABEL, brl, data, dataHora, minutos, num } from "@/lib/format";
-import { Card, Pill, RotaBadge, UrgenciaBadge } from "@/components/ui";
+import { Pill, RotaBadge, UrgenciaBadge, urg } from "@/components/ui";
 import { AgentPanel } from "@/components/AgentPanel";
+import VoltarFila from "@/components/VoltarFila";
 
 // Renderização sob demanda: não geramos 4.000 páginas estáticas.
 export const dynamic = "force-dynamic";
 
-const AUTOR: Record<string, { rotulo: string; bolha: string; lado: string }> = {
-  cliente: { rotulo: "Cliente", bolha: "bg-white ring-1 ring-slate-200 text-slate-800", lado: "justify-start" },
-  agente: { rotulo: "Atendente", bolha: "bg-indigo-600 text-white", lado: "justify-end" },
-  bot: { rotulo: "Bot", bolha: "bg-slate-200 text-slate-700", lado: "justify-end" },
+const AUTOR: Record<string, { rotulo: string; bolha: string; lado: "esq" | "dir" }> = {
+  cliente: { rotulo: "Cliente", bolha: "border border-line bg-surface text-slate-900", lado: "esq" },
+  agente: { rotulo: "Atendente", bolha: "bg-slate-800 text-white", lado: "dir" },
+  bot: { rotulo: "Bot", bolha: "border border-dashed border-slate-300 bg-slate-100 text-slate-700", lado: "dir" },
 };
+
+const TOM_SINAL = {
+  alerta: { ponto: "bg-red-600", texto: "text-red-800" },
+  aviso: { ponto: "bg-amber-500", texto: "text-amber-900" },
+  info: { ponto: "bg-slate-400", texto: "text-slate-700" },
+} as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -40,161 +48,194 @@ export default async function ConversaPage({
     .filter((o) => o.customer_id === c.customer_id && o.id !== c.id)
     .sort((a, b) => a.abertura.localeCompare(b.abertura));
 
+  // Sinais que explicam a urgência, na ordem de gravidade (mesmas regras de lib/triagem.ts).
+  const sinais: { tom: keyof typeof TOM_SINAL; texto: string }[] = [];
+  if (temReacaoAdversa(c))
+    sinais.push({ tom: "alerta", texto: "Relato de reação adversa: exige registro de cosmetovigilância em até 24h" });
+  if (c.canal === "reclame_aqui") sinais.push({ tom: "alerta", texto: `Reclame Aqui: resposta pública, custo de ${brl(c.custo)} por conversa` });
+  if (c.contatos_cliente >= CONTATOS_ESCALONAMENTO)
+    sinais.push({ tom: "alerta", texto: `${num(c.contatos_cliente)} contatos do cliente no período (este é o ${c.ordem_contato}º)` });
+  if (temInjecao(c)) sinais.push({ tom: "alerta", texto: "Mensagem tenta dar instruções à IA (possível fraude)" });
+  if (c.sla_estourado)
+    sinais.push({
+      tom: "alerta",
+      texto: `SLA estourado: 1ª resposta em ${minutos(c.primeira_resposta_min)}, limite de ${minutos(c.sla_min)}`,
+    });
+  else if (c.primeira_resposta_min === null) sinais.push({ tom: "aviso", texto: "Ainda sem resposta de um atendente" });
+  if (c.status === "reaberto") sinais.push({ tom: "aviso", texto: "Conversa reaberta pelo cliente" });
+  if (c.recontato && c.contatos_cliente < CONTATOS_ESCALONAMENTO)
+    sinais.push({ tom: "aviso", texto: `Recontato: ${c.ordem_contato}º contato do cliente no período` });
+  if (p?.status_entrega === "atrasado") sinais.push({ tom: "aviso", texto: "Pedido com entrega atrasada" });
+  if (c.fora_horario) sinais.push({ tom: "info", texto: "Aberta fora do horário de atendimento (8h–20h)" });
+  if (c.pii) sinais.push({ tom: "info", texto: "Dados pessoais mascarados na conversa" });
+
   const linha = (rotulo: string, valor: React.ReactNode) => (
     <div className="flex justify-between gap-3 py-1.5 text-sm">
-      <dt className="text-slate-500">{rotulo}</dt>
+      <dt className="text-muted">{rotulo}</dt>
       <dd className="text-right font-medium text-slate-900">{valor}</dd>
     </div>
   );
 
+  const painel = "rounded-lg border border-line bg-surface";
+  const tituloPainel = "border-b border-line px-4 py-2.5 text-sm font-semibold text-slate-900";
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link href="/fila" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-            ← Voltar para a fila
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-            Conversa {c.id} <span className="text-slate-400">·</span> {c.motivo}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
-            <UrgenciaBadge u={t.urgencia} />
-            <RotaBadge r={t.rota} />
-            <Pill>{CANAL_LABEL[c.canal] ?? c.canal}</Pill>
-            <Pill>{c.marca}</Pill>
-            <Pill tom={c.status === "reaberto" || c.status === "pendente" ? "alerta" : "neutro"}>{STATUS_LABEL[c.status] ?? c.status}</Pill>
-            <span>Aberta em {dataHora(c.abertura)}</span>
+    <div className="space-y-5">
+      {/* Cabeçalho do caso */}
+      <header>
+        <VoltarFila />
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{c.motivo}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-sm">
+              <UrgenciaBadge u={t.urgencia} />
+              <RotaBadge r={t.rota} />
+              <Pill tom={c.status === "reaberto" ? "aviso" : "neutro"}>{STATUS_LABEL[c.status] ?? c.status}</Pill>
+              <span className="text-xs text-muted">
+                <span className="font-mono">{c.id}</span> · {CANAL_LABEL[c.canal] ?? c.canal} · {c.marca} · aberta em{" "}
+                {dataHora(c.abertura)}
+              </span>
+            </div>
           </div>
+          <a
+            href="#agente"
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 lg:hidden"
+          >
+            Ir para o agente ↓
+          </a>
         </div>
-        <a
-          href="#agente"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-        >
-          Rodar agente ↓
-        </a>
-      </div>
+      </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Thread */}
-        <Card className="lg:col-span-2">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold text-slate-900">Conversa ({c.mensagens.length} mensagens)</h2>
-            <span className="text-xs text-slate-500">Tag dada pelo atendente: {c.tag_agente ?? "(vazia)"}</span>
+      {/* Por que precisa de atenção */}
+      <section aria-labelledby="atencao" className={`${painel} relative overflow-hidden`}>
+        <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${urg(t.urgencia).barra}`} />
+        <div className="grid gap-4 py-3 pl-5 pr-4 md:grid-cols-2">
+          <div>
+            <h2 id="atencao" className="text-sm font-semibold text-slate-900">
+              Por que precisa de atenção
+            </h2>
+            {sinais.length ? (
+              <ul className="mt-2 space-y-1.5">
+                {sinais.map((s) => (
+                  <li key={s.texto} className={`flex gap-2 text-sm ${TOM_SINAL[s.tom].texto}`}>
+                    <span aria-hidden className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TOM_SINAL[s.tom].ponto}`} />
+                    {s.texto}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-muted">Nenhum sinal de risco: dentro do SLA, primeiro contato, canal privado.</p>
+            )}
           </div>
-          <div className="space-y-3 rounded-lg bg-slate-50 p-3 sm:p-4">
-            {c.mensagens.map((m, i) => {
-              const a = AUTOR[m.autor] ?? AUTOR.cliente;
-              return (
-                <div key={i} className={`flex ${a.lado}`}>
-                  <div className="max-w-[85%] sm:max-w-[75%]">
-                    <div className={`mb-0.5 text-[11px] text-slate-500 ${a.lado === "justify-end" ? "text-right" : ""}`}>
-                      {a.rotulo} · {dataHora(m.ts)}
-                    </div>
-                    <div className={`whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm shadow-sm ${a.bolha}`}>{m.texto}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* Lateral */}
-        <div className="space-y-4">
-          <Card>
-            <h2 className="mb-2 font-semibold text-slate-900">Triagem</h2>
-            <dl className="divide-y divide-slate-100">
-              {linha("Urgência", <UrgenciaBadge u={t.urgencia} />)}
-              {linha("Rota", <RotaBadge r={t.rota} />)}
-              {linha("Score de prioridade", num(t.score))}
-              {linha("Motivo (regras)", c.motivo)}
-              {c.motivos_secundarios.length > 0 && linha("Motivos secundários", c.motivos_secundarios.join(", "))}
-              {linha("Custo da conversa", brl(c.custo))}
-            </dl>
-            <ul className="mt-3 space-y-1 text-xs text-slate-600">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Decisão da triagem:{" "}
+              <span className={t.rota === "humano" ? "text-slate-900" : "text-emerald-800"}>
+                {t.rota === "humano" ? "vai para um atendente" : "o agente pode resolver sozinho"}
+              </span>
+            </h2>
+            <ul className="mt-2 space-y-1 text-sm text-slate-700">
               {t.motivos_rota.map((m) => (
-                <li key={m} className="flex gap-1.5">
-                  <span className="text-slate-400">•</span>
+                <li key={m} className="flex gap-2">
+                  <span aria-hidden className="text-muted">
+                    –
+                  </span>
                   {m}
                 </li>
               ))}
             </ul>
-          </Card>
+            <p className="mt-2 text-xs text-muted">
+              Score de prioridade {num(t.score)} · custo da conversa {brl(c.custo)} · tag do atendente:{" "}
+              {c.tag_agente ?? "(vazia)"}
+            </p>
+          </div>
+        </div>
+      </section>
 
-          <Card>
-            <h2 className="mb-2 font-semibold text-slate-900">Sinais</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {c.sla_estourado ? (
-                <Pill tom="alerta">SLA estourado</Pill>
-              ) : c.primeira_resposta_min === null ? (
-                <Pill tom="alerta">Sem resposta do atendente</Pill>
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+        {/* Agente: o que ele faz na prática */}
+        <section id="agente" aria-label="Agente de IA" className="min-w-0 scroll-mt-16 lg:col-span-7">
+          <AgentPanel conversationId={c.id} autorun={autoExecutar} />
+        </section>
+
+        <div className="min-w-0 space-y-5 lg:col-span-5">
+          {/* Conversa */}
+          <section aria-labelledby="thread" className={painel}>
+            <h2 id="thread" className={`${tituloPainel} flex items-baseline justify-between gap-2`}>
+              Conversa
+              <span className="text-xs font-normal text-muted">{c.mensagens.length} mensagens</span>
+            </h2>
+            <ol className="space-y-3 bg-slate-50 p-3 lg:max-h-[560px] lg:overflow-y-auto">
+              {c.mensagens.map((m, i) => {
+                const a = AUTOR[m.autor] ?? AUTOR.cliente;
+                return (
+                  <li key={i} className={`flex ${a.lado === "dir" ? "justify-end" : "justify-start"}`}>
+                    <div className="max-w-[88%]">
+                      <div className={`mb-0.5 text-[11px] text-muted ${a.lado === "dir" ? "text-right" : ""}`}>
+                        <span className="font-medium text-slate-700">{a.rotulo}</span> · {dataHora(m.ts)}
+                      </div>
+                      <div className={`whitespace-pre-wrap break-words rounded-lg px-3 py-2 text-sm ${a.bolha}`}>{m.texto}</div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          {/* Pedido */}
+          <section aria-labelledby="pedido" className={painel}>
+            <h2 id="pedido" className={tituloPainel}>
+              Pedido
+            </h2>
+            <div className="px-4 py-2">
+              {p ? (
+                <dl className="divide-y divide-line">
+                  {linha(
+                    "Entrega",
+                    <Pill tom={p.status_entrega === "atrasado" ? "alerta" : p.status_entrega === "entregue" ? "bom" : "info"}>
+                      {ENTREGA_LABEL[p.status_entrega] ?? p.status_entrega}
+                    </Pill>,
+                  )}
+                  {linha("Produto", p.produto)}
+                  {linha("Valor", brl(p.valor))}
+                  {linha("Data do pedido", `${data(p.data_pedido)} (${num(p.dias_desde_pedido)} dias até o contato)`)}
+                  {linha("Transportadora", `${p.transportadora} · ${p.uf}`)}
+                  {linha("Número / SKU", <span className="font-mono text-xs">{p.order_id} · {p.sku}</span>)}
+                </dl>
               ) : (
-                <Pill tom="bom">Dentro do SLA</Pill>
+                <p className="py-1.5 text-sm text-muted">Conversa sem pedido vinculado.</p>
               )}
-              {c.recontato && <Pill tom="alerta">Recontato ({c.ordem_contato}º contato)</Pill>}
-              {c.contatos_cliente >= 3 && <Pill tom="alerta">{c.contatos_cliente} contatos do cliente</Pill>}
-              {c.fora_horario && <Pill tom="info">Aberta fora do horário (8h–20h)</Pill>}
-              {c.pii && <Pill tom="info">Dados pessoais mascarados</Pill>}
-              {c.injecao_prompt && <Pill tom="alerta">Tentativa de instruir a IA</Pill>}
             </div>
-            <dl className="mt-3 divide-y divide-slate-100">
-              {linha(
-                "1ª resposta / SLA",
-                <span className={c.sla_estourado ? "text-rose-700" : ""}>
-                  {c.primeira_resposta_min === null ? "sem resposta" : minutos(c.primeira_resposta_min)} / {minutos(c.sla_min)}
-                </span>,
-              )}
-              {linha("Contatos do cliente no período", num(c.contatos_cliente))}
-              {linha("Contatos sobre este pedido", num(c.contatos_pedido))}
-            </dl>
-          </Card>
+          </section>
 
-          <Card>
-            <h2 className="mb-2 font-semibold text-slate-900">Pedido</h2>
-            {p ? (
-              <dl className="divide-y divide-slate-100">
-                {linha("Número", <span className="font-mono">{p.order_id}</span>)}
-                {linha("Produto", p.produto)}
-                {linha("SKU", <span className="font-mono">{p.sku}</span>)}
-                {linha("Valor", brl(p.valor))}
-                {linha("Data do pedido", data(p.data_pedido))}
-                {linha("Dias até o contato", num(p.dias_desde_pedido))}
-                {linha(
-                  "Entrega",
-                  <Pill tom={p.status_entrega === "atrasado" ? "alerta" : p.status_entrega === "entregue" ? "bom" : "info"}>
-                    {ENTREGA_LABEL[p.status_entrega] ?? p.status_entrega}
-                  </Pill>,
-                )}
-                {linha("Transportadora", p.transportadora)}
-                {linha("UF", p.uf)}
-              </dl>
-            ) : (
-              <p className="text-sm text-slate-500">Conversa sem pedido vinculado.</p>
-            )}
-          </Card>
-
-          {historico.length > 0 && (
-            <Card>
-              <h2 className="mb-2 font-semibold text-slate-900">Outras conversas do cliente ({historico.length})</h2>
-              <ul className="divide-y divide-slate-100 text-sm">
+          {/* Histórico */}
+          <section aria-labelledby="historico" className={painel}>
+            <h2 id="historico" className={tituloPainel}>
+              Outras conversas do cliente ({historico.length})
+            </h2>
+            {historico.length > 0 ? (
+              <ul className="divide-y divide-line text-sm">
                 {historico.map((h) => (
-                  <li key={h.id} className="flex items-center justify-between gap-2 py-1.5">
-                    <Link href={`/conversa/${h.id}`} className="font-medium text-indigo-600 hover:text-indigo-800">
-                      {h.id}
+                  <li key={h.id}>
+                    <Link href={`/conversa/${h.id}`} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50">
+                      <span className="font-mono text-xs text-accent">{h.id}</span>
+                      <span className="min-w-0 flex-1 truncate text-slate-800">{h.motivo}</span>
+                      <span className="whitespace-nowrap text-xs text-muted">{data(h.abertura)}</span>
                     </Link>
-                    <span className="truncate text-xs text-slate-600">{h.motivo}</span>
-                    <span className="whitespace-nowrap text-xs text-slate-400">{data(h.abertura)}</span>
                   </li>
                 ))}
               </ul>
-            </Card>
-          )}
+            ) : (
+              <p className="px-4 py-3 text-sm text-muted">Primeiro contato deste cliente no período.</p>
+            )}
+            {c.motivos_secundarios.length > 0 && (
+              <p className="border-t border-line px-4 py-2 text-xs text-muted">
+                Motivos secundários nesta conversa: {c.motivos_secundarios.join(", ")}
+              </p>
+            )}
+          </section>
         </div>
       </div>
-
-      <section id="agente" className="scroll-mt-20">
-        <h2 className="mb-3 text-base font-semibold text-slate-900">Agente de IA</h2>
-        <AgentPanel conversationId={c.id} autorun={autoExecutar} />
-      </section>
     </div>
   );
 }

@@ -17,8 +17,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <Nav />
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">{children}</main>
-        <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs text-slate-500 sm:px-6">
+        <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:py-6">{children}</main>
+        <footer className="mx-auto max-w-7xl px-4 pb-8 text-xs text-muted sm:px-6">
           Amostra de 1/3 dos clientes, conversas de 02/07 a 29/09/2026. Projeções: ×3 para o período e ×12 para o ano.
           Dados pessoais mascarados.
         </footer>

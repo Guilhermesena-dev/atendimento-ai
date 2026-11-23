@@ -3,7 +3,7 @@
 // baseado nas mesmas políticas, para que a demonstração nunca fique sem resposta.
 import type { Conversa } from "./types";
 import { triar } from "./triagem";
-import { TOOLS_FIN_LOG, motivosEscalonamento, temFoto, temInjecao, temReacaoAdversa, type EstadoExecucao } from "./policies";
+import { TOOLS_FIN_LOG, motivosEscalonamento, temFoto, temInjecao, temReacaoAdversa, textoRecebimento, type EstadoExecucao } from "./policies";
 import { TOOL_DEFS, executarTool, trocasAnterioresPedido, type AcaoExecutada } from "./tools";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -228,7 +228,9 @@ function acoesPorMotivo(ctx: Ctx, o: Step["origem"]) {
   }
 }
 
-const ehAviso = (a: AcaoExecutada) => a.args.tipo === "aviso_seguranca";
+// Mensagens automáticas enviadas mesmo em caso escalado; não contam como a "resposta final".
+const ehAviso = (a: AcaoExecutada) =>
+  a.origem === "guard-rail" && (a.args.tipo === "aviso_seguranca" || a.args.tipo === "confirmacao_recebimento");
 
 function relatoCliente(c: Conversa) {
   return c.mensagens.filter((m) => m.autor === "cliente").map((m) => m.texto).join(" ").slice(0, 400);
@@ -283,6 +285,20 @@ function aplicarGuardRails(ctx: Ctx) {
   }
   if (!aprovou("enviar_resposta") && !aprovou("escalar_humano")) {
     rodarTool(ctx, "enviar_resposta", { texto: respostaTemplate(c, ctx.acoes) }, "guard-rail");
+  }
+  // Caso escalado: o cliente recebe na hora uma confirmação com o prazo (a reação adversa já recebeu o aviso de segurança).
+  // Não envia: em mensagem avulsa sem identidade verificada; no Reclame Aqui (resposta pública fica com o humano);
+  // em suspeita de fraude; nem se o cliente já recebeu uma resposta completa nesta execução.
+  const jaRespondido = ctx.acoes.some((a) => a.tool === "enviar_resposta" && a.status === "aprovado");
+  if (
+    aprovou("escalar_humano") &&
+    !jaRespondido &&
+    ctx.estado.identidadeVerificada !== false &&
+    c.canal !== "reclame_aqui" &&
+    !temInjecao(c)
+  ) {
+    ctx.steps.push({ tipo: "pensamento", texto: "Guard-rail: caso escalado. Enviando confirmação de recebimento com o prazo do canal para o cliente não ficar sem retorno.", origem: "guard-rail" });
+    rodarTool(ctx, "enviar_resposta", { tipo: "confirmacao_recebimento", texto: textoRecebimento(c) }, "guard-rail");
   }
 }
 

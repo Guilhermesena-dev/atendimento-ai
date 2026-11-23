@@ -1,13 +1,22 @@
 @import "tailwindcss";
 
+/* Tokens da ferramenta operacional: neutros frios, uma cor de ação e cores semânticas só onde carregam significado. */
 :root {
-  --background: #f6f7f9;
-  --foreground: #0f172a;
+  --background: #f4f5f7;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --line: #e2e5ea;
+  --muted: #5b6472;
+  --accent: #1d4ed8; /* links e foco */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -20,6 +29,18 @@ body {
 
 .tabular { font-variant-numeric: tabular-nums; }
 
+/* Foco visível e consistente em tudo que é interativo */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 details > summary { list-style: none; cursor: pointer; }
 details > summary::-webkit-details-marker { display: none; }
-details[open] .chevron { transform: rotate(90deg); }
+details > summary .chevron { transition: transform 0.15s; display: inline-block; }
+details[open] > summary .chevron { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

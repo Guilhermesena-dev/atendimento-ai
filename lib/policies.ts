@@ -187,6 +187,29 @@ function pedidoDaConversa(c: Conversa, orderId: unknown): Validacao | null {
 const RE_PROMESSA =
   /(aprovad[oa]|aprovamos|j[aá] (solicitamos|providenciamos|fizemos|realizamos|liberamos)|vamos|iremos|faremos|ser[aá]|est[aá] (sendo )?(feito|processad)|confirmamos|garantimos)[^.!?]{0,60}(reembols|estorn|reenvi|nova produ[cç])|(reembols|estorn|reenvi|nova produ[cç])\w*[^.!?]{0,40}(aprovad|confirmad|realizad|processad|liberad|ser[aá] (feito|creditad|enviad))/i;
 
+/**
+ * Confirmação de recebimento enviada na hora quando o caso é escalado: o cliente não fica sem retorno
+ * enquanto espera o atendente. Texto fixo (sem IA), sem promessa de reembolso/reenvio, com o prazo do SLA do canal.
+ */
+export function textoRecebimento(c: Conversa): string {
+  // Hora da última mensagem (horário local da operação, sem fuso no dataset).
+  const ultima = c.mensagens.at(-1)?.ts ?? c.abertura;
+  const hora = Number(/[T ](\d{2}):/.exec(ultima)?.[1] ?? 12);
+  const prazo =
+    c.canal === "whatsapp"
+      ? hora >= 8 && hora < 20
+        ? "em até 30 minutos"
+        : "a partir das 8h, quando nosso atendimento abre"
+      : c.canal === "email"
+        ? "em até 24 horas"
+        : "em até 48 horas";
+  const pedido = c.order_id ? ` sobre o pedido ${c.order_id}` : "";
+  const desculpa = c.contatos_cliente >= CONTATOS_ESCALONAMENTO ? " Sentimos muito por você precisar nos procurar de novo." : "";
+  return `Olá! Recebemos sua mensagem${pedido}.${desculpa} Seu caso foi encaminhado para um especialista da nossa equipe, que vai te responder ${prazo}.
+
+Time ${c.marca}`;
+}
+
 function promessaSemAcao(texto: string, estado: EstadoExecucao): string | null {
   if (!RE_PROMESSA.test(texto)) return null;
   const aprovada = (tool: string) => estado.acoes.some((a) => a.tool === tool && a.status === "aprovado");
@@ -297,6 +320,12 @@ function validarBase(tool: string, args: Record<string, unknown>, c: Conversa, e
       const texto = String(args.texto ?? "");
       if (args.tipo === "aviso_seguranca" && temReacaoAdversa(c) && /suspend/i.test(texto))
         return ok("Aviso de segurança imediato (reação adversa): suspender o uso e protocolo aberto.");
+      if (args.tipo === "confirmacao_recebimento") {
+        if (texto !== textoRecebimento(c)) return bloq("Confirmação de recebimento só pode usar o texto padrão.");
+        if (!estado.acoes.some((a) => a.tool === "escalar_humano" && a.status === "aprovado"))
+          return bloq("Confirmação de recebimento só é enviada depois do encaminhamento ao atendente.");
+        return ok("Confirmação de recebimento enviada na hora, com o prazo do canal; a resposta completa fica com o atendente.");
+      }
       const esc = motivosEscalonamento(c);
       if (esc.length > 0)
         return pend("rascunho", `Escalonamento obrigatório (${esc.join("; ")}): resposta salva como rascunho para revisão humana.`);
